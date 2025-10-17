@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>誕生日登録</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; }
+        select, button { width: 80%; max-width: 300px; padding: 10px; margin-top: 10px; font-size: 16px; }
+        button { background-color: #06C755; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #message { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>誕生月の登録</h2>
+    <p>ご登録いただくと、お誕生月に素敵なクーポンをお届けします！</p>
+
+    <form id="birthForm">
+        <select name="birthMonth" required>
+            <option value="">誕生月を選択してください</option>
+            <option value="1月">1月</option><option value="2月">2月</option><option value="3月">3月</option>
+            <option value="4月">4月</option><option value="5月">5月</option><option value="6月">6月</option>
+            <option value="7月">7月</option><option value="8月">8月</option><option value="9月">9月</option>
+            <option value="10月">10月</option><option value="11月">11月</option><option value="12月">12月</option>
+        </select>
+        <br>
+        <button type="submit">登録する</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // ▼▼▼▼▼【重要】ここから設定を書き換えてください▼▼▼▼▼
+
+        const liffId = "2008311248-3ggPBezx"; // 例: "2008311248-3ggPBezx"
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwHnhOUi7qdbtpQ0IX0tzRCiwUu-PfwbbL5JxjxkJveOeKvFtZDqUhk7EqPlSLyy7n-VA/exec"; // 例: "https://script.google.com/macros/s/..."
+
+        // ▲▲▲▲▲【重要】ここまで設定を書き換えてください▲▲▲▲▲
+
+        let userId = '';
+
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: liffId });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    userId = profile.userId;
+                } else {
+                     document.getElementById('message').textContent = 'LINEにログインして再度お試しください。';
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('message').textContent = 'LIFFの初期化に失敗しました。';
+            }
+        }
+
+        initializeLiff();
+
+        document.getElementById('birthForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!userId) {
+                document.getElementById('message').textContent = 'ユーザーIDが取得できませんでした。';
+                return;
+            }
+            const birthMonth = e.target.birthMonth.value;
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = '登録中...';
+
+            try {
+                await fetch(gasUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ userId: userId, birthMonth: birthMonth }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                messageElement.textContent = 'ご登録ありがとうございました！';
+                setTimeout(() => { liff.closeWindow(); }, 2000);
+            } catch (error) {
+                console.error('Error:', error);
+                messageElement.textContent = '登録に失敗しました。もう一度お試しください。';
+            }
+        });
+    </script>
+</body>
+</html>
