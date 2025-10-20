@@ -32,10 +32,10 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // ▼▼▼▼▼ 設定を書き換えてください ▼▼▼▼▼
-        const liffId = "2008311248-3ggPBezx";
+        // ▼▼▼▼▼ 設定はご自身のものをそのままお使いください ▼▼▼▼▼
+               const liffId = "2008311248-3ggPBezx";
         const gasUrl = "https://script.google.com/macros/s/AKfycbwHnhOUi7qdbtpQ0IX0tzRCiwUu-PfwbbL5JxjxkJveOeKvFtZDqUhk7EqPlSLyy7n-VA/exec";
-        // ▲▲▲▲▲ 設定を書き換えてください ▲▲▲▲▲
+        // ▲▲▲▲▲ 設定はご自身のものをそのままお使いください ▲▲▲▲▲
 
         let userId = '';
         const submitButton = document.getElementById('submitButton');
@@ -70,21 +70,20 @@
             try {
                 const response = await fetch(gasUrl, {
                     method: 'POST',
-                    mode: 'no-cors', 
-                    // ★送信するデータをシンプルに戻す
-                    body: JSON.stringify({ userId: userId, birthMonth: birthMonth }), 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    body: JSON.stringify({ userId: userId, birthMonth: birthMonth }),
+                    headers: { 'Content-Type': 'application/json' } 
                 });
 
-                // ★送信後にサーバーからの返事を待つようにfetchを修正★
-                // no-corsモードではレスポンス内容を読めないので、
-                // 登録済みチェックは「登録」ボタンを押した時のサーバー側（doPost）で行います。
-                // ただし、no-corsでは結果が読めないため、厳密な「登録済み」表示ができません。
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    messageElement.textContent = 'ご登録ありがとうございました！';
+                } else if (result.status === 'already_exists') {
+                    messageElement.textContent = '既にご登録済みです。ありがとうございました！';
+                } else {
+                    throw new Error(result.message);
+                }
                 
-                // ★GASのdoPostを「application/json」で返すように戻し、
-                // fetchの「no-cors」を削除するのがベストです。
-                
-                messageElement.textContent = 'ご登録ありがとうございました！';
                 setTimeout(() => { liff.closeWindow(); }, 2000);
 
             } catch (error) {
