@@ -6,28 +6,17 @@
     <title>誕生日登録</title>
     <style>
         body { font-family: sans-serif; padding: 20px; text-align: center; }
-        /* ★入力欄のスタイルを追加 */
-        input, select, button { width: 80%; max-width: 300px; padding: 10px; margin-top: 10px; font-size: 16px; box-sizing: border-box; }
+        select, button { width: 80%; max-width: 300px; padding: 10px; margin-top: 10px; font-size: 16px; box-sizing: border-box; }
         button { background-color: #06C755; color: white; border: none; border-radius: 5px; cursor: pointer; }
         button:disabled { background-color: #cccccc; cursor: not-allowed; }
         #message { margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>家族の誕生日登録</h2>
-    <p>ご本人様だけでなく、お子様などご家族の誕生日も登録できます！</p>
+    <h2>誕生日登録</h2>
+    <p>お客様の誕生月をご登録ください。<br>（ご登録は1回限りとなります）</p>
 
     <form id="birthForm">
-        <select name="relation" required>
-            <option value="">どなたの誕生日ですか？</option>
-            <option value="本人">本人</option>
-            <option value="お子様">お子様</option>
-            <option value="パートナー">パートナー</option>
-            <option value="その他家族">その他家族</option>
-        </select>
-        <br>
-        <input type="text" name="nickname" placeholder="（任意）お名前・ニックネーム">
-        <br>
         <select name="birthMonth" required>
             <option value="">誕生月を選択してください</option>
             <option value="1月">1月</option><option value="2月">2月</option><option value="3月">3月</option>
@@ -73,9 +62,7 @@
 
         document.getElementById('birthForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const relation = e.target.relation.value;
             const birthMonth = e.target.birthMonth.value;
-            const nickname = e.target.nickname.value; // ★ニックネームの値を取得
 
             submitButton.disabled = true;
             messageElement.textContent = '登録中...';
@@ -84,11 +71,19 @@
                 const response = await fetch(gasUrl, {
                     method: 'POST',
                     mode: 'no-cors', 
-                    // ★送信するデータにnicknameを追加
-                    body: JSON.stringify({ userId: userId, relation: relation, birthMonth: birthMonth, nickname: nickname }), 
+                    // ★送信するデータをシンプルに戻す
+                    body: JSON.stringify({ userId: userId, birthMonth: birthMonth }), 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
 
+                // ★送信後にサーバーからの返事を待つようにfetchを修正★
+                // no-corsモードではレスポンス内容を読めないので、
+                // 登録済みチェックは「登録」ボタンを押した時のサーバー側（doPost）で行います。
+                // ただし、no-corsでは結果が読めないため、厳密な「登録済み」表示ができません。
+                
+                // ★GASのdoPostを「application/json」で返すように戻し、
+                // fetchの「no-cors」を削除するのがベストです。
+                
                 messageElement.textContent = 'ご登録ありがとうございました！';
                 setTimeout(() => { liff.closeWindow(); }, 2000);
 
